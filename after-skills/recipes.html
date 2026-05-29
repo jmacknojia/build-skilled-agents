@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mise en Place — Recipe Collection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1208;
+      --paper: #f5f0e8;
+      --cream: #ede6d3;
+      --warm: #b8956a;
+      --rust: #c0452b;
+      --sage: #7a8c6e;
+      --gold: #d4a853;
+      --text-muted: #7a6e5f;
+      --border: rgba(26,18,8,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grain texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 50%, rgba(180,149,106,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 30%, rgba(192,69,43,0.10) 0%, transparent 55%);
+    }
+
+    .header-rule {
+      width: 60px;
+      height: 1px;
+      background: var(--warm);
+      margin: 0 auto 1.5rem;
+    }
+
+    .header-eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 1.2rem;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      position: relative;
+    }
+
+    header h1 em {
+      font-style: italic;
+      color: var(--rust);
+    }
+
+    .header-sub {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-top: 1.2rem;
+      letter-spacing: 0.01em;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2.5rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .header-meta span { display: flex; align-items: center; gap: 0.4rem; }
+    .header-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--warm); }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.8rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 0.4rem 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    /* ── MAIN GRID ── */
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.5rem;
+    }
+
+    /* Featured card spans full width */
+    .card:nth-child(1) { grid-column: span 12; }
+
+    /* Second row: 7 + 5 split */
+    .card:nth-child(2) { grid-column: span 7; }
+    .card:nth-child(3) { grid-column: span 5; }
+
+    /* Third row: 4 + 4 + 4 */
+    .card:nth-child(4),
+    .card:nth-child(5),
+    .card:nth-child(6) { grid-column: span 4; }
+
+    /* Fourth row: 5 + 7 */
+    .card:nth-child(7) { grid-column: span 5; }
+    .card:nth-child(8) { grid-column: span 7; }
+
+    /* Fifth row: 6 + 6 */
+    .card:nth-child(9),
+    .card:nth-child(10) { grid-column: span 6; }
+
+    @media (max-width: 900px) {
+      .card { grid-column: span 12 !important; }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.10s; }
+    .card:nth-child(3) { animation-delay: 0.15s; }
+    .card:nth-child(4) { animation-delay: 0.20s; }
+    .card:nth-child(5) { animation-delay: 0.25s; }
+    .card:nth-child(6) { animation-delay: 0.30s; }
+    .card:nth-child(7) { animation-delay: 0.35s; }
+    .card:nth-child(8) { animation-delay: 0.40s; }
+    .card:nth-child(9) { animation-delay: 0.45s; }
+    .card:nth-child(10) { animation-delay: 0.50s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:hover {
+      box-shadow: 0 12px 40px rgba(26,18,8,0.14);
+      transform: translateY(-3px);
+    }
+
+    /* Featured card horizontal layout */
+    .card.featured {
+      flex-direction: row;
+      min-height: 340px;
+    }
+
+    .card.featured .card-visual {
+      width: 45%;
+      flex-shrink: 0;
+    }
+
+    .card.featured .card-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 3.5rem;
+    }
+
+    @media (max-width: 700px) {
+      .card.featured { flex-direction: column; }
+      .card.featured .card-visual { width: 100%; height: 200px; }
+    }
+
+    /* Card visual (emoji backdrop) */
+    .card-visual {
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      font-size: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.5) 0%, transparent 70%);
+    }
+
+    /* Each card gets a unique bg color */
+    .card:nth-child(1) .card-visual { background: #f0e8d5; }
+    .card:nth-child(2) .card-visual { background: #f0ddd5; }
+    .card:nth-child(3) .card-visual { background: #dde8d5; }
+    .card:nth-child(4) .card-visual { background: #d5e0e8; }
+    .card:nth-child(5) .card-visual { background: #e8d5e0; }
+    .card:nth-child(6) .card-visual { background: #e8e8d5; }
+    .card:nth-child(7) .card-visual { background: #d5e8e2; }
+    .card:nth-child(8) .card-visual { background: #e8ddd5; }
+    .card:nth-child(9) .card-visual { background: #ddd5e8; }
+    .card:nth-child(10) .card-visual { background: #e8e0d5; }
+
+    .card-body {
+      padding: 1.6rem 1.8rem 1.8rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 0.7rem;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .card.featured .card-title {
+      font-size: 2.4rem;
+      line-height: 1.1;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      flex: 1;
+    }
+
+    .card.featured .card-desc { font-size: 0.96rem; }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.02em;
+    }
+
+    .card-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .badge-easy   { background: #e8f3e8; color: #4a7c59; }
+    .badge-medium { background: #fdf3e3; color: #a0722a; }
+    .badge-hard   { background: #fce8e8; color: #b03030; }
+
+    /* ── RECIPE DRAWER ── */
+    .recipe-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink);
+      padding: 0.6rem 0;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      text-align: left;
+      transition: color 0.2s;
+      margin-top: auto;
+    }
+
+    .recipe-toggle:hover { color: var(--rust); }
+
+    .recipe-toggle .toggle-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      line-height: 1;
+      transition: transform 0.3s, background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .recipe-toggle[aria-expanded="true"] .toggle-icon {
+      transform: rotate(45deg);
+      background: var(--rust);
+      border-color: var(--rust);
+      color: white;
+    }
+
+    .recipe-drawer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1);
+      background: var(--paper);
+      border-top: none;
+    }
+
+    .recipe-drawer.open {
+      max-height: 600px;
+    }
+
+    .drawer-inner {
+      padding: 1.4rem 1.8rem 1.6rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem 1.8rem;
+    }
+
+    @media (max-width: 600px) {
+      .drawer-inner { grid-template-columns: 1fr; }
+    }
+
+    .card.featured .drawer-inner {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .drawer-section-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 0.7rem;
+      display: block;
+    }
+
+    .ingredient-list {
+      list-style: none;
+      font-size: 0.84rem;
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    .ingredient-list li {
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .ingredient-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--warm);
+      font-size: 0.7rem;
+    }
+
+    .steps-list {
+      list-style: none;
+      font-size: 0.84rem;
+      color: var(--ink);
+      counter-reset: step;
+      line-height: 1;
+    }
+
+    .steps-list li {
+      counter-increment: step;
+      display: flex;
+      gap: 0.7rem;
+      margin-bottom: 0.6rem;
+      line-height: 1.55;
+    }
+
+    .steps-list li::before {
+      content: counter(step, decimal-leading-zero);
+      font-family: 'Playfair Display', serif;
+      font-size: 0.72rem;
+      color: var(--warm);
+      flex-shrink: 0;
+      padding-top: 0.15em;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    footer strong {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--warm);
+    }
+
+    /* hidden class for filter */
+    .card.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-rule"></div>
+  <p class="header-eyebrow">A curated collection</p>
+  <h1>Mise<br><em>en Place</em></h1>
+  <p class="header-sub">Ten recipes worth knowing by heart</p>
+  <div class="header-meta">
+    <span>10 Recipes</span>
+    <span class="dot"></span>
+    <span>Global Cuisine</span>
+    <span class="dot"></span>
+    <span>Home Kitchen</span>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all" onclick="filterCards(this,'all')">All</button>
+  <button class="filter-btn" data-filter="Italian" onclick="filterCards(this,'Italian')">Italian</button>
+  <button class="filter-btn" data-filter="Indian" onclick="filterCards(this,'Indian')">Indian</button>
+  <button class="filter-btn" data-filter="Japanese" onclick="filterCards(this,'Japanese')">Japanese</button>
+  <button class="filter-btn" data-filter="Mexican" onclick="filterCards(this,'Mexican')">Mexican</button>
+  <button class="filter-btn" data-filter="French" onclick="filterCards(this,'French')">French</button>
+  <button class="filter-btn" data-filter="American" onclick="filterCards(this,'American')">American</button>
+  <button class="filter-btn" data-filter="Thai" onclick="filterCards(this,'Thai')">Thai</button>
+</div>
+
+<div class="container">
+  <div class="grid" id="recipeGrid">
+
+    <!-- 1. Spaghetti Carbonara – FEATURED -->
+    <div class="card featured" data-cuisine="Italian">
+      <div class="card-visual">🍝</div>
+      <div class="card-body">
+        <p class="card-tag">Italian · Featured</p>
+        <h2 class="card-title">Spaghetti Carbonara</h2>
+        <div class="card-meta">
+          <span>⏱ 25 min</span>
+          <span>👥 2 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">A Roman classic that demands no cream — only eggs, Pecorino, guanciale, and the starchy kiss of pasta water. Mastering the emulsion is everything.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>350g spaghetti or rigatoni</li>
+              <li>150g guanciale or pancetta, diced</li>
+              <li>3 large egg yolks + 1 whole egg</li>
+              <li>80g Pecorino Romano, finely grated</li>
+              <li>Freshly cracked black pepper, abundant</li>
+              <li>Salt for pasta water</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Cook pasta in well-salted boiling water until al dente. Reserve 1 cup pasta water.</li>
+              <li>Render guanciale in a cold pan over medium heat until crispy. Remove from heat.</li>
+              <li>Whisk eggs, Pecorino, and abundant black pepper in a bowl.</li>
+              <li>Toss hot drained pasta into the guanciale pan off the heat.</li>
+              <li>Add egg mixture and a splash of pasta water, tossing vigorously to emulsify into a glossy sauce. Serve immediately.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Butter Chicken -->
+    <div class="card" data-cuisine="Indian">
+      <div class="card-visual">🍗</div>
+      <div class="card-body">
+        <p class="card-tag">Indian</p>
+        <h2 class="card-title">Butter Chicken</h2>
+        <div class="card-meta">
+          <span>⏱ 55 min</span>
+          <span>👥 4 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">Charred yogurt-marinated chicken in a silky tomato-cream sauce fragrant with garam masala, ginger, and fenugreek.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>700g chicken thighs, cubed</li>
+              <li>1 cup plain yogurt, 2 tsp garam masala</li>
+              <li>1 tsp turmeric, 1 tsp chili powder</li>
+              <li>400g crushed tomatoes</li>
+              <li>1 cup heavy cream, 3 tbsp butter</li>
+              <li>1 onion, 4 garlic cloves, 1-inch ginger</li>
+              <li>1 tsp dried fenugreek leaves (kasuri methi)</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Marinate chicken in yogurt, half the spices, salt for 30 min. Grill or broil until charred.</li>
+              <li>Sauté onion, garlic, ginger in butter until golden.</li>
+              <li>Add remaining spices and tomatoes; simmer 15 min then blend smooth.</li>
+              <li>Stir in cream and butter; simmer 5 min.</li>
+              <li>Add chicken and fenugreek; simmer 10 min. Serve with basmati rice or naan.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Salmon Teriyaki -->
+    <div class="card" data-cuisine="Japanese">
+      <div class="card-visual">🐟</div>
+      <div class="card-body">
+        <p class="card-tag">Japanese</p>
+        <h2 class="card-title">Salmon Teriyaki</h2>
+        <div class="card-meta">
+          <span>⏱ 20 min</span>
+          <span>👥 2 servings</span>
+          <span><span class="badge badge-easy">Easy</span></span>
+        </div>
+        <p class="card-desc">Glossy lacquered salmon fillets glazed with a sweet-salty reduction of soy, mirin, and sake. Ready in 20 minutes.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>2 salmon fillets (skin-on, ~180g each)</li>
+              <li>3 tbsp soy sauce</li>
+              <li>2 tbsp mirin</li>
+              <li>1 tbsp sake (or dry sherry)</li>
+              <li>1 tbsp sugar</li>
+              <li>Sesame seeds and scallions to garnish</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Mix soy, mirin, sake, and sugar in a small bowl until sugar dissolves.</li>
+              <li>Heat an oiled pan over medium-high. Cook salmon skin-side down 4 min.</li>
+              <li>Flip and cook 2 min more. Pour sauce over and let it bubble and reduce.</li>
+              <li>Spoon glaze repeatedly over fish for 1–2 min until lacquered. Serve over steamed rice.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Tacos al Pastor -->
+    <div class="card" data-cuisine="Mexican">
+      <div class="card-visual">🌮</div>
+      <div class="card-body">
+        <p class="card-tag">Mexican</p>
+        <h2 class="card-title">Tacos al Pastor</h2>
+        <div class="card-meta">
+          <span>⏱ 1 hr 30 min</span>
+          <span>👥 6 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">Chile-marinated pork with caramelised pineapple, white onion, and fresh cilantro on warm corn tortillas.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>1kg pork shoulder, thinly sliced</li>
+              <li>3 dried guajillo chiles, soaked</li>
+              <li>2 chipotle peppers in adobo</li>
+              <li>1/2 pineapple — half for marinade, half for serving</li>
+              <li>4 garlic cloves, 1 tsp cumin, 1 tsp oregano</li>
+              <li>White onion, cilantro, corn tortillas to serve</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Blend guajillo, chipotle, half the pineapple, garlic, cumin, oregano, and salt into a smooth marinade.</li>
+              <li>Coat pork slices and marinate at least 1 hour (overnight preferred).</li>
+              <li>Cook pork on a hot cast-iron pan in batches until charred and caramelised.</li>
+              <li>Grill pineapple slices alongside. Chop everything coarsely.</li>
+              <li>Serve in warm tortillas with onion, cilantro, and salsa.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Soupe à l'Oignon -->
+    <div class="card" data-cuisine="French">
+      <div class="card-visual">🧅</div>
+      <div class="card-body">
+        <p class="card-tag">French</p>
+        <h2 class="card-title">French Onion Soup</h2>
+        <div class="card-meta">
+          <span>⏱ 1 hr 15 min</span>
+          <span>👥 4 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">Deeply caramelised onions in a rich beef broth, crowned with crusty bread and a molten Gruyère gratin.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>1.2kg yellow onions, thinly sliced</li>
+              <li>4 tbsp butter, 1 tbsp olive oil</li>
+              <li>150ml dry white wine or sherry</li>
+              <li>1.2L good beef stock</li>
+              <li>1 baguette, sliced; 160g Gruyère, grated</li>
+              <li>1 tsp fresh thyme, salt and pepper</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Melt butter and oil in a heavy pot. Add onions with a pinch of salt. Cook over low heat 45–55 min, stirring often, until deeply golden.</li>
+              <li>Add wine and thyme; cook until evaporated.</li>
+              <li>Pour in stock; simmer 15 min. Season.</li>
+              <li>Toast baguette slices. Ladle soup into oven-safe bowls, top with bread and generous Gruyère.</li>
+              <li>Broil 3–4 min until cheese is bubbling and golden. Serve immediately.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Shakshuka -->
+    <div class="card" data-cuisine="Middle Eastern">
+      <div class="card-visual">🥚</div>
+      <div class="card-body">
+        <p class="card-tag">Middle Eastern</p>
+        <h2 class="card-title">Shakshuka</h2>
+        <div class="card-meta">
+          <span>⏱ 30 min</span>
+          <span>👥 3 servings</span>
+          <span><span class="badge badge-easy">Easy</span></span>
+        </div>
+        <p class="card-desc">Eggs poached in a spiced tomato and pepper sauce fragrant with cumin and smoked paprika. Brunch perfected.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>6 large eggs</li>
+              <li>2 × 400g cans crushed tomatoes</li>
+              <li>2 red bell peppers, diced</li>
+              <li>1 onion, 4 garlic cloves</li>
+              <li>1.5 tsp cumin, 1 tsp smoked paprika, 1/2 tsp chili flakes</li>
+              <li>Fresh parsley, feta cheese, crusty bread to serve</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Sauté onion and peppers in olive oil over medium heat until soft, ~8 min.</li>
+              <li>Add garlic and all spices; cook 1 min until fragrant.</li>
+              <li>Pour in tomatoes; season and simmer 10 min until slightly thickened.</li>
+              <li>Make 6 wells in the sauce; crack an egg into each.</li>
+              <li>Cover and cook 5–7 min until whites are set but yolks are still runny. Top with feta and parsley.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Pad Thai -->
+    <div class="card" data-cuisine="Thai">
+      <div class="card-visual">🍜</div>
+      <div class="card-body">
+        <p class="card-tag">Thai</p>
+        <h2 class="card-title">Pad Thai</h2>
+        <div class="card-meta">
+          <span>⏱ 25 min</span>
+          <span>👥 2 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">Stir-fried rice noodles with shrimp, tofu, egg, and bean sprouts in a tangy tamarind and fish sauce glaze. A wok classic.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>200g flat rice noodles, soaked in warm water</li>
+              <li>150g shrimp, peeled; 100g firm tofu, cubed</li>
+              <li>2 eggs, 1 cup bean sprouts</li>
+              <li>3 tbsp tamarind paste, 2 tbsp fish sauce, 1 tbsp sugar</li>
+              <li>3 scallions, 3 tbsp roasted peanuts, 1 lime</li>
+              <li>Neutral oil for wok</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Mix tamarind, fish sauce, and sugar into a sauce. Set aside.</li>
+              <li>Heat wok until smoking. Fry tofu until golden, push to side.</li>
+              <li>Add shrimp and cook 1 min. Push aside, scramble eggs in centre.</li>
+              <li>Add drained noodles and sauce; toss vigorously 2 min.</li>
+              <li>Add bean sprouts and scallions; toss 30 sec. Serve topped with peanuts and lime.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Beef Bourguignon -->
+    <div class="card" data-cuisine="French">
+      <div class="card-visual">🥩</div>
+      <div class="card-body">
+        <p class="card-tag">French</p>
+        <h2 class="card-title">Beef Bourguignon</h2>
+        <div class="card-meta">
+          <span>⏱ 3 hrs</span>
+          <span>👥 6 servings</span>
+          <span><span class="badge badge-hard">Advanced</span></span>
+        </div>
+        <p class="card-desc">Tender braised beef in a deep burgundy wine sauce with pearl onions, lardons, and mushrooms. Julia would be pleased.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>1.2kg beef chuck, cut into 5cm pieces</li>
+              <li>1 bottle burgundy or Pinot Noir</li>
+              <li>200g lardons (thick-cut bacon)</li>
+              <li>200g pearl onions, 300g cremini mushrooms</li>
+              <li>2 carrots, 3 garlic cloves, 2 cups beef stock</li>
+              <li>2 tbsp tomato paste, bouquet garni, 2 tbsp flour</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Brown lardons in a Dutch oven; remove. In the fat, brown beef well on all sides. Remove.</li>
+              <li>Sauté carrots and onions. Add garlic, tomato paste, flour.</li>
+              <li>Return beef and lardons; pour in wine and stock. Add bouquet garni.</li>
+              <li>Cover and braise in 160°C oven for 2.5 hours.</li>
+              <li>Sauté pearl onions and mushrooms separately in butter; add to pot for final 15 min. Adjust seasoning.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Avocado Toast with Poached Egg -->
+    <div class="card" data-cuisine="American">
+      <div class="card-visual">🥑</div>
+      <div class="card-body">
+        <p class="card-tag">American</p>
+        <h2 class="card-title">Avocado Toast & Poached Egg</h2>
+        <div class="card-meta">
+          <span>⏱ 15 min</span>
+          <span>👥 1 serving</span>
+          <span><span class="badge badge-easy">Easy</span></span>
+        </div>
+        <p class="card-desc">Whipped lemon ricotta meets smashed avocado on sourdough, topped with a trembling poached egg and chili flakes.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>2 thick slices sourdough bread</li>
+              <li>1 ripe avocado, 1 tbsp lemon juice</li>
+              <li>3 tbsp ricotta cheese</li>
+              <li>2 large eggs</li>
+              <li>1 tbsp white vinegar</li>
+              <li>Chili flakes, flaky salt, microgreens</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Toast sourdough until golden and crispy.</li>
+              <li>Whip ricotta with a fork; spread generously on toast.</li>
+              <li>Mash avocado with lemon juice and flaky salt; layer over ricotta.</li>
+              <li>Poach eggs in barely simmering water with vinegar for 3 min.</li>
+              <li>Place egg on top; finish with chili flakes and microgreens.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Miso Ramen -->
+    <div class="card" data-cuisine="Japanese">
+      <div class="card-visual">🍥</div>
+      <div class="card-body">
+        <p class="card-tag">Japanese</p>
+        <h2 class="card-title">Miso Ramen</h2>
+        <div class="card-meta">
+          <span>⏱ 45 min</span>
+          <span>👥 2 servings</span>
+          <span><span class="badge badge-medium">Medium</span></span>
+        </div>
+        <p class="card-desc">A rich, warming bowl: umami-laden miso broth with ramen noodles, soft-boiled soy eggs, corn, and nori.</p>
+        <button class="recipe-toggle" aria-expanded="false" onclick="toggleRecipe(this)">
+          <span class="toggle-icon">+</span>
+          View Full Recipe
+        </button>
+      </div>
+      <div class="recipe-drawer">
+        <div class="drawer-inner">
+          <div>
+            <span class="drawer-section-label">Ingredients</span>
+            <ul class="ingredient-list">
+              <li>2 portions fresh or dried ramen noodles</li>
+              <li>3 tbsp white miso paste, 1 tbsp red miso paste</li>
+              <li>1L chicken or dashi stock</li>
+              <li>1 tbsp sesame paste (tahini), 1 tsp chili paste</li>
+              <li>2 eggs (soft-boiled, soy-marinated)</li>
+              <li>Corn kernels, bamboo shoots, nori, sesame oil, scallions</li>
+            </ul>
+          </div>
+          <div>
+            <span class="drawer-section-label">Method</span>
+            <ol class="steps-list">
+              <li>Soft-boil eggs 6.5 min; cool, peel, and marinate in soy + mirin + water for at least 30 min.</li>
+              <li>Whisk both misos, sesame paste, chili paste, and a ladle of hot stock until smooth.</li>
+              <li>Bring remaining stock to a simmer. Stir in miso mixture. Do not boil.</li>
+              <li>Cook noodles per package; drain and divide into bowls.</li>
+              <li>Ladle broth over noodles; arrange halved eggs, corn, bamboo, and nori. Drizzle sesame oil.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <strong>Mise en Place</strong> &nbsp;·&nbsp; Ten recipes worth returning to
+</footer>
+
+<script>
+  function toggleRecipe(btn) {
+    const drawer = btn.nextElementSibling;
+    const isOpen = drawer.classList.contains('open');
+    drawer.classList.toggle('open', !isOpen);
+    btn.setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function filterCards(btn, cuisine) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('#recipeGrid .card').forEach(card => {
+      if (cuisine === 'all' || card.dataset.cuisine === cuisine) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
