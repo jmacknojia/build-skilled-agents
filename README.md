@@ -34,11 +34,12 @@ To resolve this issue:
 
 ## Instructor
 Angie Jones
+
 Agentic AI Leader
 
 Angie Jones guides how agentic systems are designed, implemented, and adopted across the global developer ecosystem.
 
-Angie is an award-winning teacher and international keynote speaker who shares her wealth of knowledge at software companies and conferences all over the world.
+Angie is an award-winning teacher and international keynote speaker who shares her wealth of knowledge at software companies and conferences all over the world. Check out my other LinkedIn Learning courses. https://www.linkedin.com/learning/instructors/angie-jones
 
 
 
