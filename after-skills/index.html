@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recipe Ledger</title>
+    <style>
+      :root {
+        --cream: #fcf4e8;
+        --paper: #fffdf8;
+        --ink: #2b201c;
+        --terracotta: #b95b38;
+        --olive: #5f6b3d;
+        --mustard: #d7a83f;
+        --rose: #f2dfce;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+        background: linear-gradient(135deg, var(--cream), #f6e4cc 70%, #f9f0e4);
+        color: var(--ink);
+      }
+
+      .page-shell {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 1.2rem;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 1.25rem;
+        padding: 1.6rem;
+        border: 1px solid rgba(43, 32, 28, 0.12);
+        border-radius: 28px;
+        background: rgba(255, 253, 248, 0.92);
+        box-shadow: 0 18px 44px rgba(43, 32, 28, 0.08);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: -30px auto auto -30px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(215, 168, 63, 0.28), transparent 70%);
+      }
+
+      .hero-copy h1 {
+        margin: 0.1rem 0 0.5rem;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: var(--terracotta);
+      }
+
+      .hero-copy p {
+        max-width: 620px;
+        margin: 0 0 1rem;
+        font-size: 1.02rem;
+        line-height: 1.7;
+        color: #5d4f45;
+      }
+
+      .cta {
+        display: inline-block;
+        padding: 0.7rem 1rem;
+        border-radius: 999px;
+        background: var(--terracotta);
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      .cta:hover,
+      .cta:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(185, 91, 56, 0.2);
+      }
+
+      .hero-card {
+        background: linear-gradient(145deg, var(--ink), #3d2c24);
+        color: white;
+        border-radius: 24px;
+        padding: 1.2rem;
+        align-self: end;
+        position: relative;
+      }
+
+      .hero-card::after {
+        content: "10";
+        position: absolute;
+        right: 1rem;
+        top: 0.6rem;
+        font-size: 3rem;
+        font-weight: 800;
+        opacity: 0.18;
+      }
+
+      .hero-card__label {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.72rem;
+        margin: 0 0 0.5rem;
+        color: #f0c47e;
+      }
+
+      .hero-card h2 {
+        margin: 0 0 0.4rem;
+        font-size: 1.35rem;
+      }
+
+      .hero-card p {
+        color: rgba(255, 255, 255, 0.84);
+        line-height: 1.6;
+        margin: 0 0 0.7rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .meta span {
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 0.8rem;
+      }
+
+      .recipe-list {
+        margin-top: 1.25rem;
+        padding: 1.4rem 0 0.4rem;
+      }
+
+      .list-intro {
+        margin-bottom: 1rem;
+      }
+
+      .list-intro h2 {
+        margin: 0.2rem 0 0.4rem;
+        font-size: 1.45rem;
+      }
+
+      .list-intro p {
+        margin: 0;
+        max-width: 700px;
+        color: #5d4f45;
+        line-height: 1.7;
+      }
+
+      .recipes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 1rem;
+      }
+
+      .recipe-card {
+        background: var(--paper);
+        border: 1px solid rgba(43, 32, 28, 0.08);
+        border-radius: 20px;
+        padding: 1rem;
+        box-shadow: 0 10px 24px rgba(43, 32, 28, 0.05);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .recipe-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(43, 32, 28, 0.08);
+      }
+
+      .tag {
+        display: inline-block;
+        margin-bottom: 0.55rem;
+        padding: 0.28rem 0.55rem;
+        border-radius: 999px;
+        background: var(--rose);
+        color: var(--terracotta);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .recipe-card h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1.12rem;
+      }
+
+      .recipe-card p {
+        margin: 0 0 0.7rem;
+        color: #66564d;
+        line-height: 1.5;
+      }
+
+      .recipe-card h4 {
+        margin: 0.65rem 0 0.35rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--olive);
+      }
+
+      .recipe-card ul,
+      .recipe-card ol {
+        padding-left: 1rem;
+        margin: 0;
+        color: var(--ink);
+      }
+
+      .recipe-card li {
+        margin-bottom: 0.3rem;
+        line-height: 1.45;
+      }
+
+      footer {
+        padding: 1.4rem 0 0.2rem;
+        color: #715e56;
+        text-align: center;
+      }
+
+      @media (max-width: 760px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-card {
+          margin-top: 0.3rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Handwritten kitchen notes</p>
+          <h1>Recipe Ledger</h1>
+          <p>Ten dishes for calm mornings, bright lunches, and cozy evenings. This collection leans warm, generous, and easy to return to.</p>
+          <a class="cta" href="#recipes">Browse recipes</a>
+        </div>
+        <aside class="hero-card">
+          <p class="hero-card__label">Tonight's pick</p>
+          <h2>Tomato Basil Soup</h2>
+          <p>Velvety, fragrant, and made for a quiet table with crusty bread.</p>
+          <div class="meta">
+            <span>25 min</span>
+            <span>4 serves</span>
+            <span>comfort food</span>
+          </div>
+        </aside>
+      </header>
+
+      <main class="recipe-list" id="recipes">
+        <section class="list-intro">
+          <p class="eyebrow">A small collection</p>
+          <h2>Cook with intention</h2>
+          <p>These recipes favor clear flavors, generous ingredients, and a calm rhythm that fits real kitchens.</p>
+        </section>
+
+        <section class="recipes-grid">
+          <article class="recipe-card">
+            <span class="tag">Breakfast</span>
+            <h3>Banana Pancakes</h3>
+            <p>Soft stacks with a gentle sweetness and a sunny finish.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 ripe bananas</li>
+              <li>2 eggs</li>
+              <li>1 cup flour</li>
+              <li>1 tsp baking powder</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Mash bananas and whisk with eggs.</li>
+              <li>Fold in flour and baking powder.</li>
+              <li>Cook until golden and fluffy.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Lunch</span>
+            <h3>Garden Veggie Wraps</h3>
+            <p>Crunch, herbs, and creamy hummus in a tidy lunch roll.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>4 tortillas</li>
+              <li>1 cup hummus</li>
+              <li>1 cucumber</li>
+              <li>1 carrot</li>
+              <li>Spinach leaves</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Spread hummus over each tortilla.</li>
+              <li>Pack in sliced vegetables and greens.</li>
+              <li>Roll tightly and slice in half.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Dinner</span>
+            <h3>Chicken Stir-Fry</h3>
+            <p>Quick and glossy with crisp vegetables and a savory glaze.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>300g chicken breast</li>
+              <li>1 bell pepper</li>
+              <li>1 broccoli head</li>
+              <li>2 tbsp soy sauce</li>
+              <li>1 tbsp oil</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Cook chicken in a hot pan.</li>
+              <li>Add vegetables and stir-fry until bright.</li>
+              <li>Season with soy sauce and serve warm.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Soup</span>
+            <h3>Tomato Basil Soup</h3>
+            <p>Rich, silky, and made to feel like a small ritual.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 cans tomatoes</li>
+              <li>1 onion</li>
+              <li>2 garlic cloves</li>
+              <li>Fresh basil</li>
+              <li>1 cup broth</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Saute onion and garlic.</li>
+              <li>Add tomatoes, basil, and broth.</li>
+              <li>Simmer and blend until smooth.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Seafood</span>
+            <h3>Baked Salmon</h3>
+            <p>Simple salmon with lemon, herbs, and a tender finish.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 salmon fillets</li>
+              <li>1 lemon</li>
+              <li>1 tbsp olive oil</li>
+              <li>Salt and pepper</li>
+              <li>Dill or parsley</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Season salmon with oil, salt, and pepper.</li>
+              <li>Top with lemon and herbs.</li>
+              <li>Bake until flaky and tender.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Snack</span>
+            <h3>Chocolate Oat Cookies</h3>
+            <p>Soft-baked cookies with deep cocoa and a mellow crunch.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>1 cup oats</li>
+              <li>1/2 cup peanut butter</li>
+              <li>1/4 cup honey</li>
+              <li>2 tbsp cocoa powder</li>
+              <li>1/4 cup chocolate chips</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Mix all ingredients into a dough.</li>
+              <li>Scoop onto a baking tray.</li>
+              <li>Bake until set and lightly crisp.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Dinner</span>
+            <h3>Beef Tacos</h3>
+            <p>Loaded tacos with spiced meat and bright toppings.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>300g ground beef</li>
+              <li>1 tsp cumin</li>
+              <li>1 tsp paprika</li>
+              <li>8 taco shells</li>
+              <li>Lettuce, salsa, cheese</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Brown beef with spices.</li>
+              <li>Fill taco shells with the meat.</li>
+              <li>Top with lettuce, salsa, and cheese.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Dinner</span>
+            <h3>Vegetable Fried Rice</h3>
+            <p>Fast, savory, and bright with egg and vegetables.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 cups cooked rice</li>
+              <li>2 eggs</li>
+              <li>1 cup mixed vegetables</li>
+              <li>2 tbsp soy sauce</li>
+              <li>1 tbsp oil</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Scramble eggs in a pan.</li>
+              <li>Add vegetables and rice.</li>
+              <li>Season with soy sauce and stir until hot.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Dessert</span>
+            <h3>Berry Yogurt Parfait</h3>
+            <p>A layered dessert with fruit, yogurt, and crunch.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 cups Greek yogurt</li>
+              <li>1 cup mixed berries</li>
+              <li>1/2 cup granola</li>
+              <li>Honey to drizzle</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Layer yogurt, berries, and granola in glasses.</li>
+              <li>Repeat until filled.</li>
+              <li>Finish with honey and serve cold.</li>
+            </ol>
+          </article>
+
+          <article class="recipe-card">
+            <span class="tag">Breakfast</span>
+            <h3>Avocado Toast</h3>
+            <p>Simple toast with creaminess and a fresh finish.</p>
+            <h4>Ingredients</h4>
+            <ul>
+              <li>2 slices bread</li>
+              <li>1 avocado</li>
+              <li>Salt and pepper</li>
+              <li>Cherry tomatoes</li>
+              <li>Lemon juice</li>
+            </ul>
+            <h4>Steps</h4>
+            <ol>
+              <li>Toast the bread.</li>
+              <li>Mash avocado with salt, pepper, and lemon.</li>
+              <li>Spread onto toast and top with tomatoes.</li>
+            </ol>
+          </article>
+        </section>
+      </main>
+
+      <footer>
+        <p>Enjoy your cooking adventure.</p>
+      </footer>
+    </div>
+  </body>
+</html>
